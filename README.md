@@ -7,9 +7,9 @@ This project implements and compares several controllers for position and yaw tr
 - Infinite-horizon Linear Quadratic Regulator (LQR)
 - Linear Model Predictive Control (Linear MPC)
 - Nonlinear Model Predictive Control (NMPC)
-- Nonlinear optimal control using Pontryagin’s Minimum Principle (PMP) solved by direct multiple shooting with CasADi/Ipopt
+- Nonlinear optimal control using Pontryagin’s Minimum Principle (PMP), solved by direct multiple shooting with CasADi/Ipopt
 
-The project uses a 12-state quadrotor rigid-body model in the NED frame with ZYX Euler angles. Rotor-speed limits are mapped consistently into thrust and torque constraints through the same allocation model.
+The project uses a 12-state quadrotor rigid-body model in the North-East-Down (NED) frame with ZYX Euler angles. Rotor-speed limits are consistently mapped into thrust and torque constraints through the same allocation model.
 
 ---
 
@@ -20,11 +20,11 @@ The goal of this project is to evaluate how different optimal control methods pe
 The tracking reference is a position-yaw step command:
 
 ```text
-p_ref = [1, -1, -3] m
+p_ref   = [1, -1, -3] m
 psi_ref = 0.05 rad
 ```
 
-The compared controllers use the same model structure, cost weights, actuator limits, and simulation duration to allow a fair comparison.
+All controllers use the same model structure, cost weights, actuator limits, and simulation duration to allow a fair comparison.
 
 ---
 
@@ -32,19 +32,19 @@ The compared controllers use the same model structure, cost weights, actuator li
 
 ### 1. LQR
 
-An infinite-horizon LQR controller is designed using the linearized hover model. The controller is applied to both the linearized plant and the full nonlinear plant.
+An infinite-horizon LQR controller is designed using the hover-linearized model. The controller is applied to both the linearized plant and the full nonlinear plant.
 
 ### 2. Linear MPC
 
-The linear MPC controller uses the hover-linearized model in deviation form. The continuous-time linear model is discretized using zero-order hold, and the MPC problem is solved as a quadratic program.
+The Linear MPC controller uses the hover-linearized model in deviation form. The continuous-time linear model is discretized using zero-order hold, and the MPC problem is solved as a quadratic program.
 
 ### 3. Nonlinear MPC
 
-The nonlinear MPC controller uses the full nonlinear quadrotor dynamics. The prediction model is discretized using RK4 integration, and the controller is formulated as a multiple-shooting nonlinear program.
+The Nonlinear MPC controller uses the full nonlinear quadrotor dynamics. The prediction model is discretized using fourth-order Runge-Kutta integration, and the controller is formulated as a multiple-shooting nonlinear program.
 
-### 4. PMP / Direct Multiple Shooting OCP
+### 4. PMP / Direct Multiple-Shooting OCP
 
-A finite-horizon nonlinear optimal control problem is solved using direct multiple shooting with CasADi and Ipopt. This gives a benchmark optimal trajectory and includes PMP residual diagnostics.
+A finite-horizon nonlinear optimal control problem is solved using direct multiple shooting with CasADi and Ipopt. This provides a benchmark optimal trajectory and includes PMP residual diagnostics.
 
 ---
 
@@ -93,8 +93,8 @@ A finite-horizon nonlinear optimal control problem is solved using direct multip
 Clone the repository:
 
 ```bash
-git clone https://github.com/<your-username>/qdrone2-optimal-control.git
-cd qdrone2-optimal-control
+git clone https://github.com/<your-username>/quadrotor-lqr-mpc-nmpc.git
+cd quadrotor-lqr-mpc-nmpc
 ```
 
 Create a virtual environment:
@@ -103,7 +103,7 @@ Create a virtual environment:
 python -m venv .venv
 ```
 
-Activate it:
+Activate the virtual environment:
 
 ```bash
 # Windows
@@ -133,7 +133,7 @@ casadi
 cvxpy
 ```
 
-CasADi/Ipopt is used for the nonlinear MPC and direct multiple-shooting optimal control problems. CVXPY is used for the linear MPC quadratic program.
+CasADi/Ipopt is used for the nonlinear MPC and direct multiple-shooting optimal control problems. CVXPY is used for the Linear MPC quadratic program.
 
 ---
 
@@ -193,7 +193,7 @@ Simulation results are saved in the `Simulations/` folder as `.npz` data files a
 
 ---
 
-## Main Model
+## Quadrotor Model
 
 The quadrotor state is
 
@@ -204,8 +204,8 @@ x = [p, v, eta, omega]
 where:
 
 ```text
-p     = [x, y, z]              position in NED frame
-v     = [vx, vy, vz]           velocity in NED frame
+p     = [x, y, z]              position in the NED frame
+v     = [vx, vy, vz]           velocity in the NED frame
 eta   = [phi, theta, psi]      ZYX Euler angles
 omega = [p, q, r]              body angular rates
 ```
@@ -216,7 +216,7 @@ The control input is
 u = [T, tau_x, tau_y, tau_z]
 ```
 
-where `T` is the total thrust and `tau_x`, `tau_y`, `tau_z` are body torques.
+where `T` is the total thrust, and `tau_x`, `tau_y`, and `tau_z` are the body torques.
 
 The rotor allocation maps squared motor speeds to thrust and torque:
 
@@ -231,11 +231,11 @@ The rotor allocation maps squared motor speeds to thrust and torque:
 The default simulation uses:
 
 ```text
-Simulation time: 8 s
-Reference position: [1, -1, -3] m
-Reference yaw: 0.05 rad
-Maximum motor speed: 20000 RPM
-Minimum motor speed: 0 RPM
+Simulation time:       8 s
+Reference position:    [1, -1, -3] m
+Reference yaw:         0.05 rad
+Maximum motor speed:   20000 RPM
+Minimum motor speed:   0 RPM
 ```
 
 Controller weights and physical constants are defined in:
@@ -248,7 +248,7 @@ codes/macros.py
 
 ## Results Summary
 
-The project compares the controllers using:
+The controllers are compared using:
 
 - Total quadratic objective value
 - Input saturation count
@@ -258,7 +258,7 @@ The project compares the controllers using:
 - Rotor-speed behavior
 - PMP residual diagnostics for the nonlinear OCP
 
-In the reported comparison, the PMP/Ipopt direct multiple-shooting solution achieved the lowest objective value, while LQR and Linear MPC provided strong real-time baseline performance. The coarse-grid NMPC case showed higher cost and larger attitude/yaw peaks, indicating that NMPC performance is sensitive to sampling time and horizon length.
+In the reported comparison, the PMP/Ipopt direct multiple-shooting solution achieved the lowest objective value. LQR and Linear MPC provided strong real-time baseline performance. The coarse-grid NMPC case showed higher cost and larger attitude/yaw peaks, indicating that NMPC performance is sensitive to sampling time and prediction horizon.
 
 ---
 
@@ -287,8 +287,8 @@ Simulations/ocp_nonlin_ms_casadi__pmp_residuals.pdf
 
 - The code uses the NED convention, where positive `z` points downward.
 - The thrust direction is opposite the body positive `z` axis.
-- The model uses ZYX Euler angles, so very large pitch angles should be avoided due to Euler-angle singularity.
-- Rotor speed limits are enforced through the allocation and saturation functions.
+- The model uses ZYX Euler angles, so very large pitch angles should be avoided due to the Euler-angle singularity.
+- Rotor-speed limits are enforced through the allocation and saturation functions.
 - NMPC and OCP scripts may require more computation time than LQR and Linear MPC.
 
 ---
@@ -298,13 +298,6 @@ Simulations/ocp_nonlin_ms_casadi__pmp_residuals.pdf
 Mohssen E. Elshaar
 
 ---
-
-## License
-
-Add your preferred license here.
-
-For example:
-
 ```text
 MIT License
 ```
